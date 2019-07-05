@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.eugene.sumarry</groupId>
+    <artifactId>java-backend</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <!-- 父项目packaging属性配置成pom -->
+    <packaging>pom</packaging>
+
+    <!-- 父项目添加springboot依赖, 子项目不需要再次导入 -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.4.RELEASE</version>
+    </parent>
+
+
+    <!-- 父项目配置多环境配置, 子项目不需要再次配置, 只需要导入对应的maven插件即可 -->
+    <profiles>
+        <profile>
+            <id>local</id>
+            <properties>
+                <conf.active>local</conf.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>dev</id>
+            <properties>
+                <conf.active>dev</conf.active>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>qa</id>
+            <properties>
+                <conf.active>qa</conf.active>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>pre-prod</id>
+            <properties>
+                <conf.active>pre-prod</conf.active>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+
+        <profile>
+            <id>prod</id>
+            <properties>
+                <conf.active>prod</conf.active>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
+
+    <!-- 父项目配置多环境build配置, 与上述多环境配置配套使用-->
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>conf</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources/conf/${conf.active}</directory>
+            </resource>
+        </resources>
+    </build>
+
+    <!-- 父项目配置打包的编码格式以及jdk使用版本等属性 -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <modules>
+        <module>lib/lib-common</module>
+        <module>javaee/jwt-token</module>
+        <module>design/dynamic-proxy-adapter</module>
+        <module>design/simple-factory</module>
+        <module>design/dynamic-proxy</module>
+        <module>basic/javase</module>
+    </modules>
+
+</project>
