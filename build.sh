@@ -15,6 +15,7 @@ clone() {
   clone_dynamic-proxy-adapter
   clone_simple-factory
   clone_jwt-token
+  clone_rabbit-mq
 
   echo "=============================================="
   echo "Clone project done."
@@ -66,6 +67,14 @@ clone_jwt-token() {
   echo "----------------------------------------------"
   if [ ! -e ./javaee/jwt-token ]; then
     git clone https://github.com/EugeneHuang9638/jwt-token.git -b $BRANCH ./javaee/jwt-token
+  fi
+}
+
+clone_rabbit-mq() {
+  echo -e "\nClone rabbit-mq"
+  echo "----------------------------------------------"
+  if [ ! -e ./rabbitmq ]; then
+    git clone https://github.com/EugeneHuang9638/rabbit-mq.git -b $BRANCH ./rabbitmq/rabbit-mq
   fi
 }
 
