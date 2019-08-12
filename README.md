@@ -5,7 +5,7 @@ java技术后端group root项目
 
 1. clone develop分支至本地
    ```
-      git clone https://github.com/EugeneHuang9638/java-backend.git -b develop
+      git clone https://github.com/AvengerEug/java-backend.git -b develop
    ```
    
 2. 执行如下脚本clone所有项目(develop分支)
