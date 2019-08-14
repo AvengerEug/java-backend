@@ -13,6 +13,7 @@ clone() {
   clone_lib-common
   clone_dynamic-proxy
   clone_dynamic-proxy-adapter
+  clone_tempate-method
   clone_simple-factory
   clone_jwt-token
   clone_rabbit-mq
@@ -59,6 +60,14 @@ clone_simple-factory() {
   echo "----------------------------------------------"
   if [ ! -e ./design/simple-factory ]; then
     git clone https://github.com/AvengerEug/simple-factory.git -b $BRANCH ./design/simple-factory
+  fi
+}
+
+clone_tempate-method() {
+  echo -e "\nClone template-method"
+  echo "----------------------------------------------"
+  if [ ! -e ./design/template-method ]; then
+    git clone https://github.com/AvengerEug/template-method.git -b $BRANCH ./design/template-method
   fi
 }
 
