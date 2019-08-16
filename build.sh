@@ -15,6 +15,7 @@ clone() {
   clone_dynamic-proxy-adapter
   clone_tempate-method
   clone_simple-factory
+  clone_observer
   clone_jwt-token
   clone_rabbit-mq
 
@@ -60,6 +61,14 @@ clone_simple-factory() {
   echo "----------------------------------------------"
   if [ ! -e ./design/simple-factory ]; then
     git clone https://github.com/AvengerEug/simple-factory.git -b $BRANCH ./design/simple-factory
+  fi
+}
+
+clone_observer() {
+  echo -e "\nClone observer"
+  echo "----------------------------------------------"
+  if [ ! -e ./design/observer ]; then
+    git clone https://github.com/AvengerEug/observer.git -b $BRANCH ./design/observer
   fi
 }
 
