@@ -18,6 +18,7 @@ clone() {
   clone_observer
   clone_jwt-token
   clone_rabbit-mq
+  clone_spring
 
   echo "=============================================="
   echo "Clone project done."
@@ -93,6 +94,14 @@ clone_rabbit-mq() {
   echo "----------------------------------------------"
   if [ ! -e ./rabbitmq ]; then
     git clone https://github.com/AvengerEug/rabbit-mq.git -b $BRANCH ./rabbitmq/rabbit-mq
+  fi
+}
+
+clone_spring() {
+  echo -e "\nClone spring"
+  echo "----------------------------------------------"
+  if [ ! -e ./basic/spring ]; then
+    git clone https://github.com/AvengerEug/spring.git -b $BRANCH ./basic/spring
   fi
 }
 

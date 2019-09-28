@@ -104,6 +104,7 @@
         <module>design/observer</module>
         <module>basic/javase</module>
         <module>rabbitmq/rabbit-mq</module>
+        <module>basic/spring</module>
     </modules>
 
 </project>
