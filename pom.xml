@@ -105,6 +105,7 @@
         <module>basic/javase</module>
         <module>rabbitmq/rabbit-mq</module>
         <module>basic/spring</module>
+        <module>basic/springboot-study</module>
     </modules>
 
 </project>

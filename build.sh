@@ -19,10 +19,19 @@ clone() {
   clone_jwt-token
   clone_rabbit-mq
   clone_spring
+  clone_springboot-study
 
   echo "=============================================="
   echo "Clone project done."
   echo "=============================================="
+}
+
+clone_springboot-study() {
+  echo -e "\nClone springboot-study"
+  echo "----------------------------------------------"
+  if [ ! -e ./basic/springboot-study ]; then
+    git clone https://github.com/AvengerEug/springboot-study.git -b $BRANCH ./basic/springboot-study
+  fi
 }
 
 clone_javase() {
