@@ -15,7 +15,10 @@ java技术后端group root项目
 
 3. 使用idea或者eclipse等其他编辑器以maven project的形式导入
 
-4. 因为其中的某些project会依赖与lib-common项目, 所以在拉取项目后需要在java-backend路径下执行mvn clean install命令
+4. 在java-backend项目根目录下执行如下命令编译项目:
+    ```shell
+        ./build.sh install
+    ```
 
 
 ## 包含模块

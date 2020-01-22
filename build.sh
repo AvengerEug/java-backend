@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-opts="clone"
+opts="clone install"
 
 BRANCH=${BRANCH:-"master"}
 
@@ -114,6 +114,18 @@ clone_spring() {
   fi
 }
 
+install() {
+  echo -e "\n Starting install thirdparty-1.0-SNAPSHOT.jar to maven repository"
+  cd ./design/dynamic-proxy-adapter/thirdparty
+  pwd
+  ./mvn-install.sh
+
+  cd ../../../
+  pwd
+  echo -e "\n Compile && Install root project"
+  mvn clean install && mvn clean package
+}
+
 usage() {
   echo "USAGE: $0" option key
 
@@ -128,6 +140,9 @@ usage() {
 case "$1" in
   clone)
     clone
+    ;;
+  install)
+    install
     ;;
   *)
     usage
