@@ -13,17 +13,26 @@ clone() {
   clone_lib-common
   clone_dynamic-proxy
   clone_dynamic-proxy-adapter
-  clone_tempate-method
+  clone_template-method
   clone_simple-factory
   clone_observer
   clone_jwt-token
   clone_rabbit-mq
   clone_spring
   clone_springboot-study
+  clone_spring-cloud
 
   echo "=============================================="
   echo "Clone project done."
   echo "=============================================="
+}
+
+clone_spring-cloud() {
+  echo -e "\nClone spring-cloud"
+  echo "----------------------------------------------"
+  if [ ! -e ./basic/spring-cloud ]; then
+    git clone https://github.com/AvengerEug/spring-cloud.git -b $BRANCH ./basic/spring-cloud
+  fi
 }
 
 clone_springboot-study() {
@@ -82,7 +91,7 @@ clone_observer() {
   fi
 }
 
-clone_tempate-method() {
+clone_template-method() {
   echo -e "\nClone template-method"
   echo "----------------------------------------------"
   if [ ! -e ./design/template-method ]; then

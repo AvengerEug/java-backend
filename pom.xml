@@ -106,6 +106,7 @@
         <module>rabbitmq/rabbit-mq</module>
         <module>basic/spring</module>
         <module>basic/springboot-study</module>
+        <module>basic/spring-cloud</module>
     </modules>
 
 </project>
