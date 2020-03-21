@@ -107,6 +107,7 @@
         <module>basic/spring</module>
         <module>basic/springboot-study</module>
         <module>basic/spring-cloud</module>
+        <module>basic/distributed</module>
     </modules>
 
 </project>

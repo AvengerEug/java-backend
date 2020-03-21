@@ -21,10 +21,19 @@ clone() {
   clone_spring
   clone_springboot-study
   clone_spring-cloud
+  clone_distributed
 
   echo "=============================================="
   echo "Clone project done."
   echo "=============================================="
+}
+
+clone_distributed() {
+  echo -e "\nClone distributed"
+  echo "----------------------------------------------"
+  if [ ! -e ./basic/distributed ]; then
+    git clone https://github.com/AvengerEug/distributed.git -b $BRANCH ./basic/distributed
+  fi
 }
 
 clone_spring-cloud() {
