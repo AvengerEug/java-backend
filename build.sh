@@ -35,12 +35,6 @@ clone_dynamic-proxy-adapter() {
 }
 
 install() {
-  echo -e "\n Starting install thirdparty-1.0-SNAPSHOT.jar to maven repository"
-  cd ./design/dynamic-proxy-adapter/thirdparty
-  pwd
-  ./mvn-install.sh
-
-  cd ../../../
   pwd
   echo -e "\n Compile && Install root project"
   mvn clean install && mvn clean package
