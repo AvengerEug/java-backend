@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-opts="clone install"
+opts="clone install clone_lib-common"
 
 BRANCH=${BRANCH:-"master"}
 
@@ -54,6 +54,9 @@ usage() {
 case "$1" in
   clone)
     clone
+    ;;
+  clone_lib-common)
+    clone_lib-common
     ;;
   install)
     install
