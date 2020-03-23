@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-opts="clone install clone_lib-common"
+opts="clone install clone_lib-common clone_dynamic-proxy-adapter"
 
 BRANCH=${BRANCH:-"master"}
 
@@ -57,6 +57,9 @@ case "$1" in
     ;;
   clone_lib-common)
     clone_lib-common
+    ;;
+  clone_dynamic-proxy-adapter)
+    clone_dynamic-proxy-adapter
     ;;
   install)
     install
