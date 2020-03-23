@@ -96,18 +96,7 @@
 
     <modules>
         <module>lib/lib-common</module>
-        <module>javaee/jwt-token</module>
         <module>design/dynamic-proxy-adapter</module>
-        <module>design/simple-factory</module>
-        <module>design/dynamic-proxy</module>
-        <module>design/template-method</module>
-        <module>design/observer</module>
-        <module>basic/javase</module>
-        <module>rabbitmq/rabbit-mq</module>
-        <module>basic/spring</module>
-        <module>basic/springboot-study</module>
-        <module>basic/spring-cloud</module>
-        <module>basic/distributed</module>
     </modules>
 
 </project>
