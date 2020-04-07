@@ -58,3 +58,9 @@ java技术后端group root项目
  
 ### spring-cloud
  * spring cloud框架学习。[https://github.com/AvengerEug/spring-cloud](https://github.com/AvengerEug/spring-cloud)
+ 
+### distributed
+ * 分布式相关学习。[https://github.com/AvengerEug/distributed](https://github.com/AvengerEug/distributed)
+ 
+### spring-boot-zookeeper-client-starter
+  * 基于Spring Boot开源的starter[https://github.com/AvengerEug/spring-boot-zookeeper-client-starter](https://github.com/AvengerEug/spring-boot-zookeeper-client-starter)
