@@ -22,10 +22,19 @@ clone() {
   clone_springboot-study
   clone_spring-cloud
   clone_distributed
+  clone_redis-study
 
   echo "=============================================="
   echo "Clone project done."
   echo "=============================================="
+}
+
+clone_redis-study() {
+  echo -e "\nClone redis-study"
+  echo "----------------------------------------------"
+  if [ ! -e ./basic/redis-study ]; then
+    git clone https://github.com/AvengerEug/redis-study.git -b $BRANCH ./basic/redis-study
+  fi
 }
 
 clone_distributed() {
