@@ -527,3 +527,57 @@
       ![案例](https://github.com/AvengerEug/java-backend/blob/develop/mysql/案例.png)
 
 
+
+## 四、外链接原理
+
+### 4.1 几种常见外链接原理
+
+* 内连接原理
+
+  ```mysql
+  -- 如下sql
+  SELECT * FROM t1, t2;
+  SELECT * FROM t1 join t2;
+  SELECT * FROM t1 INNER JOIN t2;
+  ```
+
+  对于上述所列出的sql全是属于内连接的。按照咱们了解的原理来解释，先从t1表取出来第一条数据，然后挨个去和t2表的每条数据进行组合，**类似于嵌套循环**。所以最终筛选出来的数据条数为：**t1的条数 * t2的条数**  --- `笛卡尔积`
+
+* 但是，还记得mysql中的基本单位叫页么？同时mysql中有一个叫`join buffer`的概念，在mysql中，一个`joib buffer`的大小为**256kb**。所以在进行join查询时，每次会读取`256kb / 16KB = 16页`的数据。最后再根据筛选出来的16页的数据(**驱动表的数据 -> 主表的数据**)去另外一个表中去查。这里进而体现出来了优化join的查询效率的方案：`提高join buffer的大小`，可以修改**join_buffer_size**的值来增加每次join查询出来的页的大小，进而减少磁盘io
+
+* 左连接原理
+
+  ```mysql
+  -- 如下sql
+  SELECT * FROM t1 LEFT JOIN t2 ON t1.a = t2.a;
+  ```
+
+  对于此条sql中，所述的连接类型为左连接。左连接有个特点，即**必须要指定一个连接条件**，否则编译会报错。在此处指定的条件为**t1.a = t2.a**。按照咱们了解的原理来解释，因为是左连接，所以左边的是主表。所以会先筛选出t1表中的a。然后再执行类型sql
+
+  ```mysql
+  SELECT * FROM t2 WHERE a = t1.a
+  ```
+
+  于是有如下伪代码:
+
+  ```java
+  for (var a : (SELECT a FROM t1)) {
+      SELECT * FROM t2 WHERE t2.a = a;
+  }
+  ```
+
+* 右连接原理
+
+  ```mysql
+  -- 如下sql
+  SELECT * FROM t1 RIGHT JOIN t2 ON t1.a = t2.a;
+  ```
+
+  与左连接原理差不多，区别就是先查出右边表(t2)的a，然后再查t1的a与t2的a相等的数据
+
+### 4.2 外连接消除
+
+* 
+
+
+
