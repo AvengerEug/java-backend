@@ -575,9 +575,109 @@
 
   与左连接原理差不多，区别就是先查出右边表(t2)的a，然后再查t1的a与t2的a相等的数据
 
-### 4.2 外连接消除
+## 五、事务
 
-* 
+### 5.1 ACID
+
+* A(Atomicity)：**原子性：两个操作要么都成功要么都失败**
+* C(Consistency)：**一致性：业务中的操作，最终的数据要统一**
+* I(isolation)：**隔离性：两个不同业务的操作不受影响**
+* D(Durability)：**持久性：操作结果不变，永久保存**
+
+### 5.2  如何开启事务
+
+* 在mysql中，事务是默认开启的，可以执行`SHOW VARIABLES LIKE 'autocommit'`语句查看，默认是开启的。即我们使用**update、insert、delete**语句时，mysql会默认开启事务和提交事务。若想手动的提交，则需要关闭`autocommit`属性(**SET autocommit = 0**)，然后显示的使用**begin或者start transaction**和**commit**以及**rollback**来开启一个事务和提交一个事务以及回滚一个事务。
+
+### 5.3 隐式提交
+
+* 当mysql中的事务不是非自动提交时。假设我们使用**begin或者start transaction**开启一个事务而没有执行`commit`或`rollback`操作时。当我们执行一些特定的操作时，会触发**隐式提交**机制。具体触发的操作如下：
+
+  ```txt
+  1. 触发DDL操作(数据库对象的数据定义语言)，即使用CREATE, ALTER, DROP命令去操作数据库、表、试图、存储过程时
+  2. 修改mysql中mysql数据库中的表，即使用ALTER USER, CREATE USER, SET PASSWORD等等。最常见的就是设置root用户的允许远程连接的ip地址，这个操作修改的是mysql数据库中的user表
+  3. 重复使用begin或start transaction提交事务。那么会默认将上一个未提交的事务提交
+  4. 在autocommit为false时，此时若手动设置autocommit为true，那么也会触发隐式提交
+  5. 显示的使用LOCK TABLE、UNLOCK TABLE来锁表和解锁表的操作时，隐式提交也会触发
+  6. 当我们使用LOAD DATA语句时，也会触发隐式提交
+  7. ANALYZE TABLE, CACHE INDEX, CHECK TABLE, FLUSH, LOCAD INDEX INTO CACHE, OPTIMIZE TABLE, REPAIR TABLE, RESET语句的使用也会触发隐式提交
+  ```
+
+### 5.4 隔离(ISOLATION)级别
+
+* 读未提交(READ UNCOMMITTED)
+
+  ```txt
+  当事务设置成了读未提交的级别(会话级别的设置：set session transaction isolation level read uncommitted;)
+  即一个事务修改了一条数据还未提交，但此时另外一个connect来读取这个条数。此时读取的是更新后的数据。这个时候是脏读，为什么呢？因为有可能上一个事务后续还会对这个数据进行操作。
+  
+  具体流程如下:
+  开启两个mysql的客户端，并分别设置隔离级别为：读未提交，且设置两个客户端的autocommit为false
+  SET autocommit = 0;   
+  SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; 
+     --> 可以使用select @@session.tx_isolation;查看当前会话事务隔离级别
+  UPDATE t1 SET d = 2 WHERE a = 1;操作
+  当另外一个连接执行SELECT d FROM t1 WHERE a = 1;时，得到的d的数据是2。
+  
+  ===>  产生了脏读
+  ```
+
+* 读已提交(READ COMMITTED)
+
+  ```txt
+  只有事务把修改的数据提交了，其他的事务才能读取到已修改的数据。但这样会出现幻读的情况。即事务A一开始查询的数据数量为10条，但是事务B插入了一条数据后。事务A再进行查询，就会发现11条数据。
+  即，在读已提交的事务级别下，其他的事务对数据进行了增加或者删除的操作并commit了，此时其他事务去读取数据，就会出现幻读的情况。
+  
+  具体流程如下：
+  开启两个mysql的客户端，并分别设置隔离级别为：读已提交，且设置两个客户端的autocommit为false
+  SET autocommit = 0;
+  SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+  在事务客户端a中执行:
+    SELECT * FROM t1;  此时只有10条数据
+  在事务客户端b中执行:
+    begin;
+    INSERT INTO t1 values(11, 2, 4, 5, 'd');
+    commit;
+  在事务客户端a中执行
+    SELECT * FROM t1;  此时只有11条数据
+  
+  同时在读未提交的隔离机制中也会出现幻读的情况
+  ```
+
+  `读已提交的事务隔离机制原理`：
+
+  * 在mysql中，每行数据除了基本的字段外，还会额外存储**row_id, transaction_id, roll_pointer**三个字段。所以针对t1表的每条记录在修改数据时，mysql会存储一些类似如下的内容：
+
+  * 详见下图：
+
+    ![事务间查询原理.png](https://github.com/AvengerEug/java-backend/blob/develop/mysql/事务间查询原理.png)
+
+* 可重复读(REPEATABLE READ)
+
+  ```txt
+  在同一个事务中，若自己没有对数据修改，那么读取的数据不会变，即重复读。--- 在可重复读隔离级别中把幻读给解决了
+  ```
+
+  `可重复读的事务隔离机制原理`：
+
+  与**读已提交**的原理差不多，但是区别在于`ReadView`，在**读已提交**的隔离机制中，同一个事务下每执行一次select时，都会更新`ReadView`的数据，也就是说，若中途有事务提交了，`ReadView`中的数据就会减少。而**可重复读**的隔离机制中，同一个事务，不管是select多少次，用的是第一次的`ReadView`，这也就刚好能证明它的可重复读特性了。因为就算其他事务提交了，但是我select时的`ReadView`没有被更新，所以不会读取最新的数据。
+
+* 串行化(SERIALIZABLE)
+
+  ```txt
+  指定对同一条记录的顺序执行
+  ```
+
+* **总结**
+
+  | 隔离机制 |                         特点(及原理)                         | 存在的问题 |
+  | :------: | :----------------------------------------------------------: | :--------: |
+  | 读未提交 | 1. 两个事务未提交也能互相读取到修改的数据  -- 脏读<br>2. 一个事务插入或修改数据，另外一个事务也能获取到  --- 幻读 | 脏读、幻读 |
+  | 读已提交 | 1. 两个事务，只要其中有一个事务做出了commit操作，另外一个事务也能获取到 --- 幻读<br> |    幻读    |
+  | 可重复读 | 1. 两个事务互相隔离，完全不同的两个世界，你做你的事，我做我的事，互相不影响。你修改数据，commit了，我也获取不到你修改后的数据  --- 可重读 |    暂无    |
+
+### 
+
+
 
 
 
