@@ -643,7 +643,7 @@
   同时在读未提交的隔离机制中也会出现幻读的情况
   ```
 
-  `读已提交的事务隔离机制原理`：
+  `读已提交的事务隔离机制原理`：/
 
   * 在mysql中，每行数据除了基本的字段外，还会额外存储**row_id, transaction_id, roll_pointer**三个字段。所以针对t1表的每条记录在修改数据时，mysql会存储一些类似如下的内容：
 
@@ -675,7 +675,105 @@
   | 读已提交 | 1. 两个事务，只要其中有一个事务做出了commit操作，另外一个事务也能获取到 --- 幻读<br> |    幻读    |
   | 可重复读 | 1. 两个事务互相隔离，完全不同的两个世界，你做你的事，我做我的事，互相不影响。你修改数据，commit了，我也获取不到你修改后的数据  --- 可重读 |    暂无    |
 
+## 六、锁
+
+### 6.1 mysql锁的分类
+
+* 读锁：在mysql中每条记录可以有多个读锁
+
+  手动添加一个读锁：
+
+  ```sql
+  SELECT * FROM t1 WHERE a = 1 LOCK IN SHARE MODE;
+  ```
+
+* 写锁：在mysql中每条记录最多只能存在一个写锁
+
+  手动添加一个写锁：
+
+  ```mysql
+  SELECT * FROM t1 WHERE a = 1 FOR UPDATE;
+  ```
+
+* 上述的**读/写锁**的特点不会因mysql的事务隔离机制变化而变化
+
+* **重复加行锁 + 另一个事务在行锁中添加写锁**
+
+  ![行锁1](https://github.com/AvengerEug/java-backend/blob/develop/mysql/读锁1.png)
+
+  可以看到，重复添加读锁是没问题的，但是在读锁中添加行锁，此时会`阻塞`
+
+* **重复加行锁 + 当前事务添加写锁**
+
+  ![重复加行锁 + 当前事务添加写锁](https://github.com/AvengerEug/java-backend/blob/develop/mysql/行锁3.png)
+
+* **不同事务中添加写锁**
+
+  ![不同事务中添加写锁](https://github.com/AvengerEug/java-backend/blob/develop/mysql/写锁1.png)
+
+* 针对上述写锁和读锁，在每个事务隔离机制中，同一个事务中可以任意操作，不同事务之间是遵循上述**读/写锁**原则的。同时，只有显示的添加了`LOCK IN SHARED MODE`或`FOR UPDATE`加锁关键字才算加锁，正常的`SELECT * FROM table`跟锁没有任何联系的，就算表中某一行添加了写锁，我依然能够访问，见下图：
+
+  ![写锁2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/写锁2.png)
+
+### 6.2 mysql中delete + insert + update三个操作上锁机制
+
+* **DELETE：先给记录加写锁，再执行删除操作**
+
+* **INSERT: 会先加隐式锁来保护这条新插入的记录，来保证这条记录不会被其他事务给访问**
+
+  ```txt
+  隐式锁：类似于悲观锁，在插入一条记录是，会记录事务id，当其他事务来操作这条记录时，发现事务id不对，这时会添加一把写锁。
+  ```
+
+* **UPDATE：会先给记录加x锁，再直接对记录进行修改**
+
+### 6.3 行锁类别
+
+* **LOCK_REC_NOT_GAP：锁单个记录**
+* **LOCK_GAP：间隙锁，锁定一个范围，不包括自己**
+* **LOCK_ORDINARY：锁定一个返回，包括自己，间隙锁的升级版**
+
+### 6.4 各事务隔离机制的行锁对比
+
+* **读已提交(READ COMMITTED)事务级别的行锁**
+
+  1. 对`主键`所处的行进行锁定
+
+     ![READ_COMMITTED-1](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-1.png)
+
+     ![READ_COMMITTED-2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-2.png)
+
+     `结论：当锁住的sql语句走了聚簇索引(主键)时，锁住的只是一行`
+
+  2. 对辅助索引所处的行进行锁定
+
+     ![READ_COMMITTED-3-走辅助索引](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-3-走辅助索引.png)
+
+     ![READ_COMMITTED-3-走辅助索引-2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-3-走辅助索引-2.png)
+
+     ![READ_COMMITTED-3-走辅助索引-3](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-3-走辅助索引-3.png)
+
+     `总结:所以走辅助索引，最终也是锁了行，但是按照咱们之前的知识，每个主键都会对应一颗B+树，辅助索引最终会进行回表操作。当我们执行SELECT * FROM t1 WHERE a = 1;的sql语句时，其实它走的索引是**聚簇索引**， 但是它也阻塞了，由此可以证明辅助索引锁住的行，最终也会把聚簇索引也锁住`
+
+  3. 不走任何索引的情况
+
+     ![不走索引1](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITED_不走索引1.png)
+
+     ![不走索引2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITED_不走索引2.png)
+
+     ![不走索引3](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITED_不走索引3.png)
+
+     `总结：由此可见，对于READ COMMITTED读可提交的事务级别不走任何索引的情况，锁住的也是当前行`
+
+* **REPEATABLE READ可重复读事务级别的行锁**
+
+  1. 对`主键`所处的行进行锁定 ---- 与**READ COMMITTED的事务级别一样**
+  2. 对辅助索引所处的行进行锁定 ---- 与**READ COMMITTED的事务级别一样**
+  3. 不同于**READ COMMITTED的事务级别**。在此情况下，`此事务级别将全表进行锁定`
+
 ### 
+
+
 
 
 
