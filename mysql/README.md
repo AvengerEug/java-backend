@@ -2,7 +2,7 @@
 
 ## 一、架构图
 
-![mysql架构图](https://github.com/AvengerEug/java-backend/blob/develop/mysql/架构图.png)
+![mysql架构图](./架构图.png)
 
 ## 二、常见的存储引擎与区别
 
@@ -20,13 +20,13 @@
 
 * 数据会存储在硬盘上，在真正需要处理数据时，首先会把数据加载到内存中去。当进行查表时，InnoDB并不是一行一行的读取，在InnoDB中的数据大小单位叫`页`, 在mysql中可以使用如下命令查看页大小: **SHOW GLOBAL STATUS like 'Innodb_page_size';**
 
-  ![默认页大小](https://github.com/AvengerEug/java-backend/blob/develop/mysql/默认页大小.png)
+  ![默认页大小](./默认页大小.png)
 
   默认页大小为**16384 byte**, 即`16kb`。对于mysql而言，不管是插入数据还是找出数据，都是以页为基本单位，也就是说，假设我们执行一条sql，它内部存储的内存大小小于`16kb`，此时mysql会继续将后面的数据也加载出来，因为mysql认为你可能后面会用到它们。
 
 * 页结构
 
-  ![页结构](https://github.com/AvengerEug/java-backend/blob/develop/mysql/页结构.png)
+  ![页结构](./页结构.png)
 
   通过上述图可知，固定部分已经占了**38 + 56 + 26 + 8 = 128字节**，相对于**16384字节**而言，微不足道。所以我们在mysql中存储的数据都是在`User Records`和`Free Space`两部分
 
@@ -42,7 +42,7 @@
     c INT,
     d INT,
     e VARCHAR(20)
-  ) ENGINE=InnoDB
+  ) ENGINE=InnoDB;
   
   --- 初始化数据
   INSERT INTO t1 VALUES
@@ -64,7 +64,7 @@
     c INT,
     d INT,
     e VARCHAR(20)
-  ) ENGINE=MyISAM
+  ) ENGINE=MyISAM;
   
   --- 初始化数据
   INSERT INTO t2 VALUES
@@ -82,15 +82,15 @@
 
 * 插入数据后的结果
 
-  ![InnoDB与MyISAM插入数据区别](https://github.com/AvengerEug/java-backend/blob/develop/mysql/InnoDB和MyISAM插入数据区别.png)
+  ![InnoDB与MyISAM插入数据区别](./InnoDB和MyISAM插入数据区别.png)
 
 ### 3.3 InnoDB聚簇索引索引
 
 * 通过上述内容可以知道，InnoDB在存储数据时默认会按照主键排序，而在此过程中，mysql还做了一件事，就是建立了`聚簇索引`。此`聚簇索引`是一棵**B+树**。我们通过**[https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html](https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html)**网站，根据**t1**表中的主键构建了这样的一棵**B+树**，如下所示：
 
-  ![聚簇索引B+树](https://github.com/AvengerEug/java-backend/blob/develop/mysql/聚簇索引.png)
+  ![聚簇索引B+树](./聚簇索引.png)
 
-  可以看到，叶子节点中存储了`t1`表中所有的主键，其实在mysql构建这棵树中，它会存储其他的数据结构，于是，针对上述的数据结构，我重新绘制了一幅图：![聚簇索引2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/聚簇索引2.png)
+  可以看到，叶子节点中存储了`t1`表中所有的主键，其实在mysql构建这棵树中，它会存储其他的数据结构，于是，针对上述的数据结构，我重新绘制了一幅图：![聚簇索引2](./聚簇索引2.png)
 
    可以看到，每一个主键内部维护了剩下的数据部分，也就是当我们执行如下sql时：
 
@@ -106,11 +106,11 @@
 
 * 假设我们要为bcd三个字段创建一个**联合索引**，同上，我们先统计下bcd字段的所有可能出现的值：**111、222、322、311、235、644、455、888、219、742、**，排序后就是`111 > 219 > 222 > 235 > 311 > 322 > 455 > 644 > 742 > 888`。同上，我们使用现有的工具[https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html](https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html)来构建b+树
 
-  ![bcd索引b+树](https://github.com/AvengerEug/java-backend/blob/develop/mysql/bcd索引B+树.png)
+  ![bcd索引b+树](./bcd索引B+树.png)
 
   同理，mysql构建出来的B+树会在此基础上加点东西，如下图：
 
-  ![bcd索引B+树2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/bcd索引B+树2.png)
+  ![bcd索引B+树2](./bcd索引B+树2.png)
 
   由上可知，在bcd每个节点内部都维护了当前数据对应的主键，之所以叫做**辅助索引**，就是因为在mysql中，最终都会通过主键去找数据(因为这能保证一定会走聚簇索引)，而我们自定义的索引中，内部维护了当前数据对应的主键，所以最后还会根据这个主键去走聚簇索引。**注意: 这里的每一个节点(数据页)被加载一次就会产生一次IO，之前我们说过，InnerDB引擎中的数据单位为页，在图中可能没有体现出来**。上述所说的`回表`的概念就是：在辅助索引确认的情况下，还要根据辅助索引各节点中对应的主键到`聚簇索引`中去找对应的数据。
 
@@ -520,11 +520,11 @@
       SHOW TABLE STATUS LIKE '表名';
       ```
 
-      ![查看表中所有数据的大小](https://github.com/AvengerEug/java-backend/blob/develop/mysql/查看表中所有数据的大小.png)
+      ![查看表中所有数据的大小](./查看表中所有数据的大小.png)
 
       所以t1表的全表扫描的成本为：`Data_length / 16384 * 1 + Rows * 0.2 = 16384/16384 * 1 + 10 * 0.2 = 3`  即全表扫描时的权重为`3`  => 这里为什么会与上述的`table_scan`得出的全表扫描权重`5.1`不一致呢？`这里待确认为什么会这样？？？？？？？？？？`。不过按照上述mysql自己输出的记录来看，最终走的是`idx_t1_bcd`索引，类型为`range_scan`。使用explain查看如下：
 
-      ![案例](https://github.com/AvengerEug/java-backend/blob/develop/mysql/案例.png)
+      ![案例](./案例.png)
 
 
 
@@ -649,7 +649,7 @@
 
   * 详见下图：
 
-    ![事务间查询原理.png](https://github.com/AvengerEug/java-backend/blob/develop/mysql/事务间查询原理.png)
+    ![事务间查询原理.png](./事务间查询原理.png)
 
 * 可重复读(REPEATABLE READ)
 
@@ -699,21 +699,21 @@
 
 * **重复加行锁 + 另一个事务在行锁中添加写锁**
 
-  ![行锁1](https://github.com/AvengerEug/java-backend/blob/develop/mysql/读锁1.png)
+  ![行锁1](./读锁1.png)
 
   可以看到，重复添加读锁是没问题的，但是在读锁中添加行锁，此时会`阻塞`
 
 * **重复加行锁 + 当前事务添加写锁**
 
-  ![重复加行锁 + 当前事务添加写锁](https://github.com/AvengerEug/java-backend/blob/develop/mysql/行锁3.png)
+  ![重复加行锁 + 当前事务添加写锁](./行锁3.png)
 
 * **不同事务中添加写锁**
 
-  ![不同事务中添加写锁](https://github.com/AvengerEug/java-backend/blob/develop/mysql/写锁1.png)
+  ![不同事务中添加写锁](./写锁1.png)
 
 * 针对上述写锁和读锁，在每个事务隔离机制中，同一个事务中可以任意操作，不同事务之间是遵循上述**读/写锁**原则的。同时，只有显示的添加了`LOCK IN SHARED MODE`或`FOR UPDATE`加锁关键字才算加锁，正常的`SELECT * FROM table`跟锁没有任何联系的，就算表中某一行添加了写锁，我依然能够访问，见下图：
 
-  ![写锁2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/写锁2.png)
+  ![写锁2](./写锁2.png)
 
 ### 6.2 mysql中delete + insert + update三个操作上锁机制
 
@@ -739,29 +739,29 @@
 
   1. 对`主键`所处的行进行锁定
 
-     ![READ_COMMITTED-1](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-1.png)
+     ![READ_COMMITTED-1](./READ_COMMITTED-1.png)
 
-     ![READ_COMMITTED-2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-2.png)
+     ![READ_COMMITTED-2](./READ_COMMITTED-2.png)
 
      `结论：当锁住的sql语句走了聚簇索引(主键)时，锁住的只是一行`
 
   2. 对辅助索引所处的行进行锁定
 
-     ![READ_COMMITTED-3-走辅助索引](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-3-走辅助索引.png)
+     ![READ_COMMITTED-3-走辅助索引](./READ_COMMITTED-3-走辅助索引.png)
 
-     ![READ_COMMITTED-3-走辅助索引-2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-3-走辅助索引-2.png)
+     ![READ_COMMITTED-3-走辅助索引-2](./READ_COMMITTED-3-走辅助索引-2.png)
 
-     ![READ_COMMITTED-3-走辅助索引-3](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITTED-3-走辅助索引-3.png)
+     ![READ_COMMITTED-3-走辅助索引-3](./READ_COMMITTED-3-走辅助索引-3.png)
 
      `总结:所以走辅助索引，最终也是锁了行，但是按照咱们之前的知识，每个主键都会对应一颗B+树，辅助索引最终会进行回表操作。当我们执行SELECT * FROM t1 WHERE a = 1;的sql语句时，其实它走的索引是**聚簇索引**， 但是它也阻塞了，由此可以证明辅助索引锁住的行，最终也会把聚簇索引也锁住`
 
   3. 不走任何索引的情况
 
-     ![不走索引1](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITED_不走索引1.png)
+     ![不走索引1](./READ_COMMITED_不走索引1.png)
 
-     ![不走索引2](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITED_不走索引2.png)
+     ![不走索引2](./READ_COMMITED_不走索引2.png)
 
-     ![不走索引3](https://github.com/AvengerEug/java-backend/blob/develop/mysql/READ_COMMITED_不走索引3.png)
+     ![不走索引3](./READ_COMMITED_不走索引3.png)
 
      `总结：由此可见，对于READ COMMITTED读可提交的事务级别不走任何索引的情况，锁住的也是当前行`
 
@@ -771,9 +771,34 @@
   2. 对辅助索引所处的行进行锁定 ---- 与**READ COMMITTED的事务级别一样**
   3. 不同于**READ COMMITTED的事务级别**。在此情况下，`此事务级别将全表进行锁定`
 
-### 
+## 七、Explain分析sql语句
 
+* Explain关键字结果各字段含义
 
+  |     字段      |                             含义                             |
+  | :-----------: | :----------------------------------------------------------: |
+  |      id       | 查询语句每出现一个关键字，就会有它对应的id。<br />1.在连表查询时，所有的id都一样。<br />2.在子查询时，每个id都不一样(视查询优化器的优化结果而言，因为查询优化器有可能对子查询进行重写) |
+  |  select_type  |                    SELECT关键字对应的类型                    |
+  |     table     |                         涉及到的表名                         |
+  |  partitions   |                           分区信息                           |
+  |     type      |                     针对table的访问方式                      |
+  | possible_keys |                        可能用到的索引                        |
+  |      key      |                        实际用到的索引                        |
+  |    key_len    |                     实际用到的索引的长度                     |
+  |      ref      |    当对索引进行等值查询时，与索引列进行等值匹配的对象信息    |
+  |     rows      |                      预估需要读取的行数                      |
+  |   filtered    |        当前表经过条件筛选了，过滤掉了百分之多少的数据        |
+  |     extra     |                           额外信息                           |
+
+### 7.1 详解id
+
+#### 7.1.1 连表查询下的id
+
+#### 7.1.2 子查询下的id
+
+#### 7.1.3 union下的id
+
+#### 7.1.4 union all下的id
 
 
 
