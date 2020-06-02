@@ -794,11 +794,85 @@
 
 #### 7.1.1 连表查询下的id
 
+* 不管是内连接、左连接、外链接，最终分析出来的id都是同一个
+
+  ```SQL
+  -- 内连接
+  EXPLAIN SELECT * FROM t1, t2;
+  EXPLAIN SELECT * FROM t1 JOIN t2;
+  EXPLAIN SELECT * FROM t1 INNER JOIN t2;
+  EXPLAIN SELECT * FROM t1 FULL JOIN t2;
+  
+  -- 左外连接
+  EXPLAIN SELECT * FROM t1 LEFT JOIN t2 ON t1.a = t2.a;
+  
+  -- 右外连接
+  EXPLAIN SELECT * FROM t1 RIGHT JOIN t2 ON t1.a = t2.a;
+  ```
+
+* 这里展示下左外链接下的explain结果(**出现在第一行的是驱动表，第二行的是被驱动表**)
+
+  ![explain-连接查询下的id.png](./explain-连接查询下的id.png)
+
 #### 7.1.2 子查询下的id
+
+* 一般情况下， 子查询中有几个select就会出现几个id，如下图所示（查询t1表有两个条件，其中条件1是来源于子查询的结果，条件2为自身表字段的结果）
+
+  ![explain-连接查询下的id(1).png](./explain-子查询下的id(1).png)
+
+* 但有特殊情况，查询优化器会对子查询做优化，有可能会对子查询优化成一个连接查询，如下所示：
+
+  ![explain-连接查询下的id(2).png](./explain-子查询下的id(2).png)
+
+* 分析：可以看到id都是1，也就是优化成了**连接查询**了
 
 #### 7.1.3 union下的id
 
+* 先总结下`UNION`关键字的含义：此关键字可以将两个表的结果以垂直方向拼接，但要求两个结果查出来的列的数据类型、列的数量一致。但它有一个特点：`会过滤掉重复的数据`
+
+* `UNION`关键字下的执行计划：
+
+  ![explain-union下的id.png](./explain-union下的id.png)
+
+* 分析：可以看到它有三个id，分别为1、2、null。为什么会有null？那是因为union关键字。因为union具有去重功能，所以它需要开一个临时表(如上所示，名字叫`union1,2`)来完成去功能。
+
 #### 7.1.4 union all下的id
+
+* 再总结下`UNION ALL`关键字的含义：与`UNION`关键字类似，但是它的特点是不会过滤掉重复的数据。
+
+* `UNION ALL`关键字下的执行计划：
+
+  ![explain-union all下的id.png](./explain-union all下的id.png)
+
+* 分析：可以发现它的id只有两个，没有了id为null的行。这也和它的功能有关，因为它不需要去重，所以压根没必要创建临时表。
+
+### 7.2 详解select_type
+
+* 对应当前表在当前查询起的作用，用[####7.1.4 union all下的id](####7.1.4 union all下的id)章节的图来说明问题，在t1和t2进行union all查询时，t2占据的类别为union，t1是primary。也就是将t2查询出来的结果放在t1后面。
+
+* 可取的值
+
+  | select_type可取的值 |                             含义                             |
+  | :-----------------: | :----------------------------------------------------------: |
+  |       primary       | **union**/**union all**/**in**关键字查询下的才会出现，表示为主表 |
+  |        union        |              拼接在select_type为primary的表下面              |
+  |       simple        |      不包含子查询和union查询的select_type一般都是simple      |
+  |    union result     |       在使用union关键字查询时才会出现，临时表才会出现        |
+  |      subquery       | 非相关子查询下才会出现。所谓非相关子查询就是先执行子查询，再执行主查询<br />1.相关子查询：select * from dept d1 where exists(select * from emp e1 where e1.deptno=d1.deptno);<br />2.非相关子查询：select * from emp where EMPNO in (select mgr from emp);<br />非相关子查询的sql只会执行一次 |
+  | dependent subquery  | 相关子查询下才会出现，上面说了。相关子查询就是先执行主查询，在根据主查询的每一条记录去查询具体的值。 |
+
+### 7.3 详解type
+
+* type表示访问当前表的一种方式，一般可以从此属性中看sql是否走索引
+
+  | type可取值 |                             含义                             |
+  | :--------: | :----------------------------------------------------------: |
+  |   system   | 当表中只有一条记录，并且该表使用的存储引擎是MyISAM, Memory，那么对该表的访问方式就是system。 |
+  |            |                                                              |
+  |            |                                                              |
+  |            |                                                              |
+
+  
 
 
 
