@@ -10,7 +10,7 @@
   <a href="#28-mysql"><img src="https://img.shields.io/badge/-mysql-yellowgreen" alt="mysql" /></a>
 </p>
 
-![后端知识脑图](https://github.com/AvengerEug/java-backend/blob/develop/后端知识脑图.png)
+![后端知识脑图](./后端知识脑图.png)
 
 脑图链接：[https://www.processon.com/view/link/5ead29fae0b34d05e1bdab1e](https://www.processon.com/view/link/5ead29fae0b34d05e1bdab1e)
 
