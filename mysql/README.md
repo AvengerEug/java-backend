@@ -865,13 +865,18 @@
 
 * type表示访问当前表的一种方式，一般可以从此属性中看sql是否走索引
 
-  | type可取值 |                             含义                             |
-  | :--------: | :----------------------------------------------------------: |
-  |   system   | 当表中只有一条记录，并且该表使用的存储引擎是MyISAM, Memory，那么对该表的访问方式就是system。 |
-  |            |                                                              |
-  |            |                                                              |
-  |            |                                                              |
-
+  | type可取值  |                             含义                             |
+  | :---------: | :----------------------------------------------------------: |
+  |   system    | 当表中只有一条记录，并且该表使用的存储引擎是MyISAM, Memory，那么对该表的访问方式就是system。 |
+  |    const    | 当我们使用主键或者唯一二级索引列与常数进行等值匹配时，对表的访问方式就是const。<br>验证sql: explain select * from t1 where a = 1; |
+  |   eq_ref    | 在连接查询时，如果被驱动表是通过主键或者唯一二级索引等值匹配的方式进行访问的，那么对被驱动表的访问方式就是eq_ref：<br>验证sql: explain select * from t1 join t2 on t1.a = t2.a; |
+  |     ref     | 当通过普通的二级索引列与常量进行等值匹配时来查询某个表，那么对该表的访问方法就可能是ref<br>验证sql: explain select * from t1 where b = 1; (要为b添加索引) |
+| ref_or_null | 当对普通的二级索引进行等值查找或者查找条件包含NULL的话，那么查找此表的方式就是ref_or_null<br>验证sql: explain select * from t1 where b = 1 or b is null;(要为b添加索引) |
+  | index_merge | 索引合并，当聚簇索引和二级索引一起作为条件查询时，此时会进行索引合并。<br>验证sql: explain select * from t1 where a = 1 or b  = 1; |
+  |    range    | 当对索引进行范围查找时，此时访问表的方式就是range。<br>验证sql: select * from t1 where a > ; |
+  |    index    | 当我们可以使用覆盖索引，但需要扫描全部的索引记录时，该表的访问方法就是index。<br>验证sql：explain select b from t1; (要对b添加索引) |
+  |     all     |                           全表扫描                           |
+  
   
 
 
