@@ -1,4 +1,4 @@
-## Elasticsearch(7.4.2  <=> 7.x)
+## **Elasticsearch(7.4.2  <=> 7.x)
 
 ### 一、Elasticsearch介绍
 
@@ -1415,4 +1415,122 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
 * 未来在ES8.0的版本中，将会彻底移除type。链接：[https://www.elastic.co/guide/en/elasticsearch/reference/7.4/removal-of-types.html#parent-child-mapping-types](https://www.elastic.co/guide/en/elasticsearch/reference/7.4/removal-of-types.html#parent-child-mapping-types)
 
   
+
+### 七、ES  JAVA 客户端技术选型
+
+* 1、通过9300端口与ES进行交互(**长连接**)
+
+> 1. 9300端口是基于TCP而言的，ES集群之间的通信都是通过9300端口来的。
+>
+> 2. 通过9300端口进行操作ES，这说明，我们的客户端要和ES建立长连接。
+>
+> 3. 在springboot的spring-data-elasticsearch项目中，存在Transport Client，但同时在springboot的
+>    官网中，也不推荐我们使用此客户端。(地址：[https://docs.spring.io/spring-data/elasticsearch/docs/4.0.2.RELEASE/reference/html/#elasticsearch.clients.transport](https://docs.spring.io/spring-data/elasticsearch/docs/4.0.2.RELEASE/reference/html/#elasticsearch.clients.transport))。更推荐
+>    
+>    我们使用性能更高的客户端[[High Level REST Client](https://docs.spring.io/spring-data/elasticsearch/docs/4.0.2.RELEASE/reference/html/#elasticsearch.clients.rest)](https://docs.spring.io/spring-data/elasticsearch/docs/4.0.2.RELEASE/reference/html/#elasticsearch.clients.rest)。且springboot
+>    
+>    官网文档中也说明在**ES 7.X**版本中，不推荐使用Transport Client，并且在**ES 8.0以后会废弃9300**
+>    
+>    **端口来操作ES**
+
+* 2、通过9200端口与ES进行交互(**短连接**)
+
+> 1. JestClient：非官方，更新慢
+> 2. springboot自带的restTemplate：ES的很多操作需要自己封装，工作量大，重复造轮子
+> 3. HttpClient：同restTemplate
+> 4. (`推荐`)Elasticsearch-Rest-Client：官方的RestClient，封装了ES操作，上手简单，与ES版本同步更新
+
+* ES中有提供JS的客户端，为什么不直接选择JS与ES交互，而要通过JAVA中间层呢？
+
+  ```txt
+  1. 主要考虑到安全问题，我们的ES是一种存储、检索、分析的服务器，一般是部署在内网中的(不对外开放端口)。为了安全和稳定性，一般不会让JS与ES直接交互。
+  2. ES对JS的支持度没有那么高，这将导致我们很多处理需要额外封装请求，属于重复造轮子。
+  ```
+
+### 八、maven中依赖的jar包为什么要引用properties中定义的变量，而不直接把版本号写死?
+
+* 首先，不管是怎么定义，它都有自己的含义，我们来总结下他们的优缺点
+
+  |            类别            |               优点               |      缺点      |
+  | :------------------------: | :------------------------------: | :------------: |
+  | 引用properties中定义的变量 | **层次清晰、重复使用、便于管理** | 好像没什么缺点 |
+  |      直接把版本号写死      |          好像没什么优点          |   不便于管理   |
+
+  通过上面的类比，**引用properties中的变量**好像完爆**直接把版本号写死的情况**，那是不是我们不管在任何情况下都采
+
+  用properties的方式呢？答案肯定是不是这样的，咱们作为一名程序员还是要知其所以然。
+
+* 我们查看一下**spring-boot-starter-parent**项目中的**pom.xml**文件的定义，然后你会发现下面这一段：
+
+  ```xml
+    <parent>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-dependencies</artifactId>
+      <version>2.2.5.RELEASE</version>
+      <relativePath>../../spring-boot-dependencies</relativePath>
+    </parent>
+  ```
+
+  很明显，**spring-boot-starter-parent**是**spring-boot-dependencies**项目的一个子模块
+
+* 那我们再继续看一下**spring-boot-dependencies**的**pom.xml**文件的依赖(东西有点多，我们只看部分)
+
+  ```xml
+  <!-- properties标签定义的变量 -->
+  <properties>
+      ......上面省略一大堆
+  	<mysql.version>8.0.19</mysql.version>
+      ......下面省略一大堆
+  </properties>
+  
+  <dependencies>
+      ....上面省略一大堆依赖
+      <!-- dependencies 中依赖的mysql驱动包 -->
+  	<dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>${mysql.version}</version>
+          <exclusions>
+              <exclusion>
+                  <artifactId>protobuf-java</artifactId>
+                  <groupId>com.google.protobuf</groupId>
+              </exclusion>
+          </exclusions>
+      </dependency>
+      
+      <!-- dependencies 中依赖的spring-boot-starter-web -->
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-web</artifactId>
+          <version>2.2.5.RELEASE</version>
+      </dependency>
+      下面省略一大堆依赖
+  </dependencies>
+  ```
+
+  看到上面的一段依赖，这表明**spring-boot-dependencies**依赖了**mysql-connector-java 8.0.19的版本**、**spring-boot-starter-web 2.2.5.RELEASE版本**。按照我们上述的总结，那我们是不是可以说：spring有病哦，为什么不这么定义呢：
+
+  ```xml
+  <properties>
+      <spring.boot.common.version>2.2.5.RELEASE</spring.boot.common.version>
+  </properties>
+  
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>${spring.boot.common.version}</version>
+  </dependency>
+  ```
+
+  这样不是更好么？便于管理。按照我们目前拥有的知识而言，这很对，没毛病。但是，你真的以为spring有病吗？为什么要这么多此一举？我们来做个实验，新建一个springboot项目(以parent的方式导入)，然后在pom.xml文件中写入如下代码：
+
+  ```xml
+  <properties>
+      <mysql.version>5.1.47</mysql.version>
+  </properties>
+  ```
+
+  指定MySQL驱动包的版本，最终进行mavan打包，并且把打成的jar包打开，你会发现，依赖的版本变成了5.1.47，不再是8.0.19了。这就说明了一个问题，parent项目中的properties配置的属性可以被子模块覆盖，如果父模块的版本是通过properties指定的，那子模块就可以随时更改版本信息。在springboot中，因为每个版本都需要依赖对应的版本信息，否则可能会出现版本不兼容的问题，所以spring在依赖自己开发的模块的时候，都是显示的把版本信息指定好，防止子模块进行版本覆盖。但这仅出现在parent依赖的情况。
+
+
 
