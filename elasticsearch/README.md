@@ -63,6 +63,9 @@ Elasticsearch 中索引数据之前轻松地处理数据。同时，Kibana 不�
 中进行索引之前解析、标准化并充实这些原始数据的过程。这些数据在 Elasticsearch 中索引完成之后，用户便可针对他们
 的数据运行复杂的查询，并使用聚合来检索自身数据的复杂汇总。在 Kibana 中，用户可以基于自己的数据创建强大的可视
 化，分享仪表板，并对 Elastic Stack 进行管理。
+
+ES是将数据存在内存中的，因为ES是天然支持分布式的，所以我们不需要担心内存不够，如果内存不够，那就多添加几个ES节点不就行了么~(核心：容量不够，数量来凑。但内存的价格比硬盘还是贵很多的，推荐在ES中存储有用的数据，什么叫有用的
+数据呢？就是我们需要根据什么条件来检索，我们就把条件字段存储的值存入ES)
 ```
 
 #### 1.5 如何学习
@@ -70,6 +73,13 @@ Elasticsearch 中索引数据之前轻松地处理数据。同时，Kibana 不�
 ```txt
 Elasticsearch的学习，建议参考官方的英文文档，因为它比较新。当然，它也有一些中文文档，缺点就是中文文档翻译的是
 比较老的Elasticsearch版本(基于 Elasticsearch 2.x)，比较新的版本是没有中文文档的。
+```
+
+#### 1.6 ES在avengereugMall项目中的作用
+
+```txt
+1、所有全文检索功能。eg: 根据商品的名称、规格属性、销售属性进行检索
+2、日志的分析检索，能够根据日志快速定位问题。ELK(elasticsearch、logstash、Kibana)
 ```
 
 ### 二、与MySQL的对比
@@ -250,78 +260,79 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
 
 * **POST + _update更新文档**
 
-  ```shell
-  curl -X PUT "localhost:9200/customer/_doc/1/_update" -H "Content-Type: application/json" -d \
-  '
-  {
-     "doc": {
-         "name": "John Doe1"
-     }
-  }
-  '
-  
-  # ps: 之前文档中的name为"John Doe", 运行上段命令后，响应结果如下：
-  {
-      "_index":"customer",
-      "_type":"_doc",
-      "_id":"1",
-      "_version":3,
-      "result":"updated",  # result 为updated
-      "_shards":{
-          "total":2,
-          "successful":1,
-          "failed":0
-      },
-      "_seq_no":3,
-      "_primary_term":1
-  }
-  
-  # 当再次执行上段命令后，响应结果如下：
-  {
-      "_index":"customer",
-      "_type":"_doc",
-      "_id":"1",
-      "_version":3,
-      "result":"noop",   # result 为noop(no operation)
-      "_shards":{
-          "total":0,
-          "successful":0,
-          "failed":0
-      },
-      "_seq_no":3,
-      "_primary_term":1
-  }
-  
-  # 几个结论：
-  使用POST + _update更新文档的方式来更新文档有几个特点：
-  1、请求体必须为如下格式，key一定要为doc
-  {
-     "doc": {
-         // 具体更新的内容，eg: "name": "John Doe1"
-     }
-  }
-  2、若发送进去的文档数据和现在在ES中的数据相同时，此时的响应体中的result为"noop", 并且，版本号字段version、乐观锁字段_seq_no和_primary_term都不会发生变化
-  ```
+> ```shell
+> curl -X PUT "localhost:9200/customer/_doc/1/_update" -H "Content-Type: application/json" -d \
+> '
+> {
+>    "doc": {
+>        "name": "John Doe1"
+>    }
+> }
+> '
+> 
+> # ps: 之前文档中的name为"John Doe", 运行上段命令后，响应结果如下：
+> {
+>     "_index":"customer",
+>     "_type":"_doc",
+>     "_id":"1",
+>     "_version":3,
+>     "result":"updated",  # result 为updated
+>     "_shards":{
+>         "total":2,
+>         "successful":1,
+>         "failed":0
+>     },
+>     "_seq_no":3,
+>     "_primary_term":1
+> }
+> 
+> # 当再次执行上段命令后，响应结果如下：
+> {
+>     "_index":"customer",
+>     "_type":"_doc",
+>     "_id":"1",
+>     "_version":3,
+>     "result":"noop",   # result 为noop(no operation)
+>     "_shards":{
+>         "total":0,
+>         "successful":0,
+>         "failed":0
+>     },
+>     "_seq_no":3,
+>     "_primary_term":1
+> }
+> 
+> # 几个结论：
+> 使用POST + _update更新文档的方式来更新文档有几个特点：
+> 1、请求体必须为如下格式，key一定要为doc
+> {
+>    "doc": {
+>        // 具体更新的内容，eg: "name": "John Doe1"
+>    }
+> }
+> 2、若发送进去的文档数据和现在在ES中的数据相同时，此时的响应体中的result为"noop", 并且，版本号字段
+> version、乐观锁字段_seq_no和_primary_term都不会发生变化
+> ```
 
 * **POST + 不带_update**
 
-  ```shell
-  curl -X POST "localhost:9200/customer/_doc/1/" -H "Content-Type: application/json" -d \
-  '{ "name": "John Doe"}'
-  
-  # 不带_update的post方式更新文档，不会检查原来的数据，直接覆盖更新，
-  # 且版本号、乐观锁字段_seq_no和_primary_term都会发生变化，而且相应中的result字段的值为updated
-  {
-      "_index":"customer",
-      "_type":"_doc",
-      "_id":"1",
-      "_version":3,
-      "result":"updated",
-      .....
-  }
-  ```
-
-  > 结论：post + _update 结合使用，更新文档前会做校验，如果没有任何修改，则不做任何处理，此时的版本号、乐观锁相关字段都不会发生变化
+> ```shell
+> curl -X POST "localhost:9200/customer/_doc/1/" -H "Content-Type: application/json" -d \
+> '{ "name": "John Doe"}'
+> 
+> # 不带_update的post方式更新文档，不会检查原来的数据，直接覆盖更新，
+> # 且版本号、乐观锁字段_seq_no和_primary_term都会发生变化，而且相应中的result字段的值为updated
+> {
+>     "_index":"customer",
+>     "_type":"_doc",
+>     "_id":"1",
+>     "_version":3,
+>     "result":"updated",
+>     .....
+> }
+> ```
+>
+> 结论：post + _update 结合使用，更新文档前会做校验，如果没有任何修改，则不做任何处理，此时的版本号、乐观锁相关字段都不会发生变化
 
 ##### 4.2.2 ES中乐观锁的使用
 
@@ -673,16 +684,18 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
   # 总结：
   # 1、一个聚合中(aggs)可以包含多个聚合类型
   # 2、aggs在同层级下只能出现一次
-  # 3、"size": 0 ==> 表示检索出来的记录为0
+  # 3、"size": 0 ==> 表示根据query对象检索出来的记录为0
   # 4、聚合分析是额外出来的数据，与检索出来的数据是分开的
   # 5、聚合类型：term 类似于分组统计，统计出分组的个数(eg: 这个分组下有多个条记录)
   ```
 
 ###### 复杂查询二
 
-* 按照年龄聚合，并且请求这些年龄段的人的平均薪资(嵌套聚合)
+* 全文检索出地址中包含mill的数据，并将这些数据按照年龄聚合，同时求这些年龄段的人的平均薪资(嵌套聚合)。以及地址中包含mill的平均年龄、平均薪资
 
   ```shell
+  # countGroupByAge、balanceAvg、ageAvg都是自定义的聚合名称，后续将根据这些名称到响应结果中
+  # 定位自己的聚合分析结果
   GET /bank/_search
   {
     "query": {
@@ -767,7 +780,7 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
 
 #### 4.5 ES mapping映射
 
-* 映射是定义文档其包含的字段的存储和索引的方式。例如，我们可以定义
+* 映射是定义文档其包含的字段的存储和索引的方式(**类似于MySQL字段的定义**)。例如，我们可以定义
 
   1、哪些字段应该被定义成全文检索字段
 
@@ -783,10 +796,10 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
 
 * 几个规范
 
-  | 属性对应的type |                    含义                    |
-  | :------------: | :----------------------------------------: |
-  |    keyword     |              检索时是精确查找              |
-  |      text      | 检索时会全文检索(利用倒排索引，分词再检索) |
+  | 属性对应的type |                      含义                      |
+  | :------------: | :--------------------------------------------: |
+  |    keyword     |              **检索时是精确查找**              |
+  |      text      | **检索时会全文检索(利用倒排索引，分词再检索)** |
 
   具体的数据类型可参考[官网：mapping-types](https://www.elastic.co/guide/en/elasticsearch/reference/7.4/mapping-types.html)
 
@@ -941,9 +954,12 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
 * 数据迁移
 
   ```txt
-  我们在批量导入accounts.json文件中的数据时，有提供一种将数据批量导入/bank索引下的account类型下的方式，经过我们对mapping的学习中，我们发现ES建议我们不要使用type，并且在批量导入数据时，我们没有显示的创建映射，我们在查看/bank映射下的数据时，能发现age字段的类型为long。那么，我们就以这个为案例，做一个数据迁移，把/bank索引的account类型下的所有文档迁移到/bank下，并将age的字段类型改成integer。
+  我们在批量导入accounts.json文件中的数据时，有提供一种将数据批量导入/bank索引下的account类型下的方式，经过
+  我们对mapping的学习中，我们发现ES建议我们不要使用type，并且在批量导入数据时，我们没有显示的创建映射，我们
+在查看/bank映射下的数据时，能发现age字段的类型为long。那么，我们就以这个为案例，做一个数据迁移，把/bank索
+  引的account类型下的所有文档迁移到/bank下，并将age的字段类型改成integer。
   ```
-
+  
   步骤如下：
 
 > 1、创建新映射
@@ -1307,7 +1323,7 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
   >
   > 当索引ID为2的文档时，此时会进行分词，分成**搜索**、**红海**和**行动**。因此，会针对这三个值进行**倒排索引**，进而我们而出，**搜索**这个词在ID为2的文档上。
   >
-  > 当索引ID为3、4、5的文档时，流程都大同小异，唯一不同的就是，索引ID为4的文档时，会分成**红海**和**记录篇**，此时并不是统一的按照两个文字进行分词了(`如何分词？分词是否有规则？这需要去确认`)
+  > 当索引ID为3、4、5的文档时，流程都大同小异，唯一不同的就是，索引ID为4的文档时，会分成**红海**和**记录篇**，此时并不是统一的按照两个文字进行分词了(`如何分词？请参考本文的第4.6章`)
 
   > 2、检索并分析
   >
@@ -1438,12 +1454,13 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
 > 1. JestClient：非官方，更新慢
 > 2. springboot自带的restTemplate：ES的很多操作需要自己封装，工作量大，重复造轮子
 > 3. HttpClient：同restTemplate
-> 4. (`推荐`)Elasticsearch-Rest-Client：官方的RestClient，封装了ES操作，上手简单，与ES版本同步更新
+> 4. **(`推荐`)**Elasticsearch-Rest-Client：官方的RestClient，封装了ES操作，上手简单，与ES版本同步更新
 
 * ES中有提供JS的客户端，为什么不直接选择JS与ES交互，而要通过JAVA中间层呢？
 
   ```txt
-  1. 主要考虑到安全问题，我们的ES是一种存储、检索、分析的服务器，一般是部署在内网中的(不对外开放端口)。为了安全和稳定性，一般不会让JS与ES直接交互。
+  1. 主要考虑到安全问题，我们的ES是一种存储、检索、分析的服务器，一般是部署在内网中的(不对外开放端口)。
+     为了安全和稳定性，一般不会让JS与ES直接交互。
   2. ES对JS的支持度没有那么高，这将导致我们很多处理需要额外封装请求，属于重复造轮子。
   ```
 
