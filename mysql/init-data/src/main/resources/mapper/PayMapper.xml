@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.eugene.sumarry.initdata.dao.PayDao">
+
+    <resultMap type="PayPO" id="payPOMap">
+        <id column="pay_id" property="payId"/>
+        <result column="account_id" property="accountId"/>
+        <result column="create_time" property="creatTime"/>
+        <result column="state" property="state"/>
+    </resultMap>
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO pay
+            (
+                pay_id,
+                account_id,
+                create_time,
+                state
+            )
+        VALUES
+        <foreach collection="list" index="index" item="item" separator=",">
+            (
+                #{item.payId},
+                #{item.accountId},
+                #{item.createTime},
+                #{item.state}
+            )
+        </foreach>
+
+    </insert>
+
+</mapper>
