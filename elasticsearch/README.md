@@ -129,9 +129,9 @@ Elasticsearch的学习，建议参考官方的英文文档，因为它比较新�
   docker pull elasticsearch:7.4.2
   
   # 2. 本地创建配置文件，控制docker中es中的运行状态
-  mkdir -p /mydata/elasticsearch/config
-  mkdir -p /mydata/elasticsearch/data
-  chmod -R 777 /mydata/elasticsearch
+  mkdir -p /mydata/elasticsearch/config && \
+  mkdir -p /mydata/elasticsearch/data && \
+  chmod -R 777 /mydata/elasticsearch && \
   echo "http.host: 0.0.0.0" >> /mydata/elasticsearch/config/elasticsearch.yml
   
   # 3. 启动es容器 --> 9300是es在集群时的通信端口，挂载了配置文件、数据、插件的目录至本地
