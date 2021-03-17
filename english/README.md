@@ -203,13 +203,14 @@
 
 ### U
 
-| 单词        | 读音         | 含义           | 举例                                      | 翻译                        |      |
-| ----------- | ------------ | -------------- | ----------------------------------------- | --------------------------- | ---- |
-| Unified     | ['junɪ.faɪd] | 统一的         | Unified API for various transport types   | 不同的传输类型具备统一的api |      |
-| throughput  | ['θru.pʊt]   | 吞吐量         | highly throughput                         | 高吞吐量                    |      |
-| traffic     | -            | 流量；网站流量 |                                           |                             |      |
-| take a look | -            | 看一看         | Please take a look at the following code. | 请看一下下面的代码。        |      |
-| treat       | -            | 对待           |                                           |                             |      |
+| 单词        | 读音         | 含义           | 举例                                                         | 翻译                                                         |      |
+| ----------- | ------------ | -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ---- |
+| Unified     | ['junɪ.faɪd] | 统一的         | Unified API for various transport types                      | 不同的传输类型具备统一的api                                  |      |
+| throughput  | ['θru.pʊt]   | 吞吐量         | highly throughput                                            | 高吞吐量                                                     |      |
+| traffic     | -            | 流量；网站流量 |                                                              |                                                              |      |
+| take a look | -            | 看一看         | Please take a look at the following code.                    | 请看一下下面的代码。                                         |      |
+| treat       | -            | 对待           |                                                              |                                                              |      |
+| typically   | -            | 典型的；       | The following diagram describes how I/O events are processed by `ChannelHandler`s in a `ChannelPipeline` typically. | 下图描述了channelHandler的channelPipleline典型的I/O事件处理过程 |      |
 
 
 
