@@ -106,7 +106,7 @@
         <module>rabbitmq/rabbit-mq</module>
         <module>basic/spring</module>
         <module>basic/springboot-study</module>
-        <module>basic/spring-cloud</module>
+        <!-- <module>basic/spring-cloud</module> -->
         <module>basic/distributed</module>
         <module>basic/redis-study</module>
         <module>mysql/init-data</module>
