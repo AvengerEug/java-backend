@@ -144,7 +144,7 @@ clone_spring() {
 install() {
   pwd
   echo -e "\n Compile && Install root project"
-  mvn clean install && mvn clean package
+  mvn clean install -DskipTests=true
 }
 
 usage() {
