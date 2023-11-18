@@ -14,6 +14,7 @@ clone() {
   clone_dynamic-proxy
   clone_dynamic-proxy-adapter
   clone_template-method
+  clone_design-beautiful
   clone_simple-factory
   clone_observer
   clone_jwt-token
@@ -116,6 +117,15 @@ clone_template-method() {
     git clone https://github.com/AvengerEug/template-method.git -b $BRANCH ./design/template-method
   fi
 }
+
+clone_design-beautiful() {
+  echo -e "\ndesign-beautiful"
+  echo "----------------------------------------------"
+  if [ ! -e ./design/design-beautiful ]; then
+    git clone https://github.com/AvengerEug/design-beautiful.git -b $BRANCH ./design/design-beautiful
+  fi
+}
+
 
 clone_jwt-token() {
   echo -e "\nClone jwt-token"
