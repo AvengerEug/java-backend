@@ -123,4 +123,8 @@ public class PayService {
         }
         return rtn;
     }
+
+    public List<PayPO> list() {
+        return payDao.list();
+    }
 }

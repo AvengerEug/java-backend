@@ -7,4 +7,7 @@ import java.util.List;
 public interface PayDao {
 
     void batchInsert(List<PayPO> list);
+
+    List<PayPO> list();
+
 }

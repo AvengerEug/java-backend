@@ -16,12 +16,12 @@ public class PayPO implements Serializable {
      */
     private Integer state;
 
-    public Long getId() {
+    public Long getPayId() {
         return payId;
     }
 
-    public void setId(Long id) {
-        this.payId = id;
+    public void setPayId(Long payId) {
+        this.payId = payId;
     }
 
     public String getAccountId() {
@@ -46,5 +46,15 @@ public class PayPO implements Serializable {
 
     public void setState(Integer state) {
         this.state = state;
+    }
+
+    @Override
+    public String toString() {
+        return "PayPO{" +
+                "payId=" + payId +
+                ", accountId='" + accountId + '\'' +
+                ", createTime=" + createTime +
+                ", state=" + state +
+                '}';
     }
 }

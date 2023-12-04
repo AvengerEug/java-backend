@@ -7,6 +7,8 @@ public class Entry {
     public static void main(String[] args) throws InterruptedException {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 
-        context.getBean(PayService.class).batchInsertWithThreadPool();
+//        context.getBean(PayService.class).batchInsertWithThreadPool();
+        System.out.println(context.getBean(PayService.class).list());
+
     }
 }

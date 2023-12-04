@@ -3,10 +3,10 @@
 
 <mapper namespace="com.eugene.sumarry.initdata.dao.PayDao">
 
-    <resultMap type="PayPO" id="payPOMap">
+    <resultMap type="com.eugene.sumarry.initdata.model.PayPO" id="payPOMap">
         <id column="pay_id" property="payId"/>
         <result column="account_id" property="accountId"/>
-        <result column="create_time" property="creatTime"/>
+        <result column="create_time" property="createTime"/>
         <result column="state" property="state"/>
     </resultMap>
 
@@ -29,5 +29,8 @@
         </foreach>
 
     </insert>
+    <select id="list" resultMap="payPOMap">
+        select * from pay order by pay_id desc limit 10;
+    </select>
 
 </mapper>
